@@ -11,12 +11,14 @@ import argparse
 import albumentations
 import torch
 from albumentations.pytorch import ToTensorV2
-
+from mtcnn import MTCNN
 from model import MixStyleResCausalModel
 
 PRE__MEAN = [0.485, 0.456, 0.406]
 PRE__STD = [0.229, 0.224, 0.225]
 INPUT__FACE__SIZE = 256
+THRESHOLD = .5
+PADDING = 10
 
 def preprocess_frame_pipe():
     return albumentations.Compose([
@@ -37,7 +39,8 @@ def run_cam_test(args, device):
     model.load_state_dict(torch.load(args.model_path, map_location=device))
     model.eval()
 
-    cap = cv2.capture(0)  # 0 is the default camera
+    cap = cv2.VideoCapture(0)  # 0 is the default camera
+    detector = MTCNN()
 
     if not cap.isOpened():
         print("Error: Could not open video stream.")
@@ -46,13 +49,22 @@ def run_cam_test(args, device):
     with torch.no_grad():
         while True:
             ret, frame = cap.read()
+            w, h = frame.shape[0], frame.shape[1]
             if not ret:
                 break
-            input_frame = preprocess_frame(frame).to(device)
-            output = model(input_frame, cf=None)
-            raw_scores = output.softmax(dim=1)[:, 1].cpu().data.numpy()
-            print("frame output:", output)
-            print("raw scores: ", raw_scores)
+            detect_box = detector.detect_faces(frame)
+            for b in detect_box:
+                box = b['box']
+                face = frame[ max(0, box[1] - PADDING) : min(w-1, box[1]+box[3] + PADDING), max(0, box[0] - PADDING) : min(h-1, box[0]+box[2] + PADDING) ]
+                input_frame = preprocess_frame(face).to(device)
+                output = model(input_frame, cf=None)
+                raw_scores = output.softmax(dim=1)[:, 1].cpu().data.numpy()[0]
+                print("frame output:", output)
+                print("raw scores: ", raw_scores)
+                if (raw_scores > THRESHOLD):
+                    cv2.rectangle(frame, (box[0], box[1]), (box[0]+box[2], box[1]+box[3]), (0, 255, 0), 4)
+                    # cv2.rectangle(frame, (0, 0), (frame.shape[1] - 1, frame.shape[0] - 1), (0, 255, 0), 4)
+                else : cv2.rectangle(frame, (box[0], box[1]), (box[0]+box[2], box[1]+box[3]), (0, 0, 255), 4)
             cv2.imshow('image', frame)
             if cv2.waitKey(1) & 0xFF == 27:  # esc key
                 break

@@ -14,3 +14,5 @@ dependencies:
     - tqdm
     - opencv
     - albumentations
+    - mtcnn
+    - tensorflow
