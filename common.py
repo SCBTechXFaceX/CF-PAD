@@ -5,7 +5,6 @@ import torch.nn as nn
 import torch.nn.functional as F
 import random
 
-import timm
 from functools import partial
 from torch import Tensor
 

@@ -18,7 +18,6 @@ import torch.optim as optim
 import torch.nn.functional as F
 import torch.backends.cudnn as cudnn
 from torch.utils.data import DataLoader
-from torch.cuda.amp import autocast, GradScaler
 
 from torch.nn.utils import clip_grad_norm_
 
@@ -37,7 +36,7 @@ def save_checkpoint(save_path, epoch, model, loss, lr_scheduler, optimizer):
               'epoch': epoch}
     torch.save(save_state, save_path)
 
-def run_training(train_csv, test_csv, log_file, output_path, args):
+def run_training(train_csv, test_csv, log_file, output_path, args, device):
     train_dataset = TrainDataset(csv_file=train_csv, input_shape=args.input_shape)
     train_loader = DataLoader(train_dataset, batch_size=args.batch_size,  sampler=ApplyWeightedRandomSampler(train_csv),
                                 num_workers=4, pin_memory=True, drop_last=True)
@@ -51,7 +50,7 @@ def run_training(train_csv, test_csv, log_file, output_path, args):
         os.makedirs(checkpoint_save_dir)
 
     model = torch.nn.DataParallel(MixStyleResCausalModel(model_name=args.model_name, pretrained=args.pretrain, num_classes=args.num_classes, prob=args.prob))
-    model = model.cuda()
+    model = model.to(device)
 
     optimizer = torch.optim.SGD([
             {'params': model.module.feature_extractor.parameters()},
@@ -61,8 +60,8 @@ def run_training(train_csv, test_csv, log_file, output_path, args):
     #lr_scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.998)
     lr_scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=[30,45], gamma=0.5)
     #lr_scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min', factor=0.5, patience=15)
-    cen_criterion = torch.nn.CrossEntropyLoss().cuda()
-    scaler = GradScaler()
+    cen_criterion = torch.nn.CrossEntropyLoss().to(device)
+    scaler = torch.GradScaler(device)
 
     flooding_impactor = 0.001
     for epoch in range(1, args.max_epoch+1):
@@ -80,9 +79,9 @@ def run_training(train_csv, test_csv, log_file, output_path, args):
             progress_bar = tqdm(train_loader)
             for i, data in enumerate(progress_bar):
                 progress_bar.set_description('Epoch ' + str(epoch))
-                raw = data["images"].cuda()
-                labels = data["labels"].cuda()
-
+                raw = data["images"].to(device)
+                labels = data["labels"].to(device)
+                autocast = torch.cuda.amp.autocast if next(model.parameters()).is_cuda else torch.cpu.amp.autocast
                 with autocast():
                     output, cf_output = model(raw, labels=labels, cf=args.ops, norm=args.norm)
                     loss_1 = cen_criterion(output, labels.to(torch.int64)) * 2
@@ -116,7 +115,7 @@ def run_training(train_csv, test_csv, log_file, output_path, args):
             log_file.flush()
 
         print ('------------ test 1 -------------------')
-        AUC_value, HTER_value = test_model(model, test_loader)
+        AUC_value, HTER_value = test_model(model, test_loader, device=device)
 
         lr_scheduler.step()
         #lr_scheduler.step(hter)
@@ -125,7 +124,7 @@ def run_training(train_csv, test_csv, log_file, output_path, args):
         log_file.write(write_txt)
         log_file.flush()
 
-def test_model(model, data_loader, video_format=True):
+def test_model(model, data_loader, device, video_format=True):
     model.eval()
 
     raw_test_scores, gt_labels = [], []
@@ -134,7 +133,7 @@ def test_model(model, data_loader, video_format=True):
     with torch.no_grad():
         # for train
         for i, data in enumerate(tqdm(data_loader)):
-            raw, labels, img_pathes = data["images"].cuda(), data["labels"], data["img_path"]
+            raw, labels, img_pathes = data["images"].to(device), data["labels"], data["img_path"]
             output = model(raw, cf=None)
 
             raw_scores = output.softmax(dim=1)[:, 1].cpu().data.numpy()
@@ -172,8 +171,11 @@ def set_seed(seed):
 
 
 if __name__ == "__main__":
-
-    torch.cuda.empty_cache()
+    if (torch.cuda.is_available()):
+        torch.cuda.empty_cache()
+        device = torch.device('cuda')
+    else :
+        device = torch.device('cpu')
     #cudnn.benchmark = True
     set_seed(seed=777)
 
@@ -212,4 +214,5 @@ if __name__ == "__main__":
                  test_csv=args.test_csv,
                  log_file=log_file,
                  output_path='prediction_scores',
-                 args=args)
+                 args=args,
+                 device=device)

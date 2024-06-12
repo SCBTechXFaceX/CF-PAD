@@ -14,30 +14,26 @@ import argparse
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
-import torch.backends.cudnn as cudnn
-import torch.nn.functional as F
-from torch.cuda.amp import autocast, GradScaler
-from collections import defaultdict
 
 from dataset import TestDataset
 from utils import  performances_cross_db, compute_video_score
 from model import MixStyleResCausalModel
 
-def run_test(test_csv, args):
+def run_test(test_csv, args, device):
 
     test_dataset = TestDataset(csv_file=test_csv, input_shape=args.input_shape)
     test_loader = DataLoader(test_dataset, batch_size=args.batch_size, shuffle=False, num_workers=8, pin_memory=True)
 
     model = torch.nn.DataParallel(MixStyleResCausalModel(model_name=args.model_name,  pretrained=False, num_classes=2, ms_layers=[]))
-    model = model.cuda()
+    model = model.to(device)
     model.load_state_dict(torch.load(args.model_path))
     save_score = False
 
-    AUC_value, HTER_value = test_model(model, test_loader)
+    AUC_value, HTER_value = test_model(model, test_loader, device)
 
     print(f'Results: AUC= {AUC_value:.4f}, HTER= {HTER_value:.4f} \n')
 
-def test_model(model, data_loader, video_format=True, save_scores=True):
+def test_model(model, data_loader, device, video_format=True, save_scores=True):
 
     raw_test_scores, gt_labels = [], []
     raw_scores_dict = []
@@ -46,7 +42,7 @@ def test_model(model, data_loader, video_format=True, save_scores=True):
     model.eval()
     with torch.no_grad():
         for i, data in enumerate(tqdm(data_loader)):
-            raw, labels, img_pathes = data["images"].cuda(), data["labels"], data["img_path"]
+            raw, labels, img_pathes = data["images"].to(device), data["labels"], data["img_path"]
             output = model(raw, cf=None)
 
             raw_scores = output.softmax(dim=1)[:, 1].cpu().data.numpy()
@@ -82,8 +78,11 @@ def set_seed(seed):
     os.environ['PYTHONHASHSEED'] = str(seed)
 
 if __name__ == "__main__":
-
-    torch.cuda.empty_cache()
+    if (torch.cuda.is_available()):
+        torch.cuda.empty_cache()
+        device = torch.device('cuda')
+    else :
+        device = torch.device('cpu')
     set_seed(seed=777)
 
     parser = argparse.ArgumentParser(description='CF baseline')
@@ -104,4 +103,5 @@ if __name__ == "__main__":
 
 
     run_test(test_csv=args.test_csv,
-                 args=args)
+                 args=args,
+                 device=device)
