@@ -65,6 +65,8 @@ def run_cam_test(args, device):
                     cv2.rectangle(frame, (box[0], box[1]), (box[0]+box[2], box[1]+box[3]), (0, 255, 0), 4)
                     # cv2.rectangle(frame, (0, 0), (frame.shape[1] - 1, frame.shape[0] - 1), (0, 255, 0), 4)
                 else : cv2.rectangle(frame, (box[0], box[1]), (box[0]+box[2], box[1]+box[3]), (0, 0, 255), 4)
+                cv2.putText(frame, str(raw_scores), (20, 20),
+                        cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 1, cv2.LINE_AA)
             cv2.imshow('image', frame)
             if cv2.waitKey(1) & 0xFF == 27:  # esc key
                 break

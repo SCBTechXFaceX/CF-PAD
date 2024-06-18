@@ -26,6 +26,8 @@ from utils import  AvgrageMeter, performances_cross_db, compute_video_score
 from model import MixStyleResCausalModel
 #import metric_utils
 
+import cv2
+
 torch.autograd.set_detect_anomaly(True)
 
 def save_checkpoint(save_path, epoch, model, loss, lr_scheduler, optimizer):
@@ -181,7 +183,7 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description='CF-PAD')
     parser.add_argument("--prefix", default='CFPAD', type=str, help="description")
-    parser.add_argument("--model_name", default='resnet50d', type=str, help="model backbone")
+    parser.add_argument("--model_name", default='resnet18', type=str, help="model backbone")
     parser.add_argument("--training_csv", type=str, help="csv contains training data")
     parser.add_argument("--test_csv", type=str, help="csv contains test data")
 
