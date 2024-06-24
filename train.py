@@ -180,6 +180,7 @@ if __name__ == "__main__":
         device = torch.device('cpu')
     #cudnn.benchmark = True
     set_seed(seed=777)
+    print(device)
 
     parser = argparse.ArgumentParser(description='CF-PAD')
     parser.add_argument("--prefix", default='CFPAD', type=str, help="description")
