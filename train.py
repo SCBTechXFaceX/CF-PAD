@@ -64,7 +64,7 @@ def run_training(train_csv, test_csv, log_file, output_path, args, device):
     #lr_scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min', factor=0.5, patience=15)
     cen_criterion = torch.nn.CrossEntropyLoss().to(device)
     scaler = torch.cuda.amp.GradScaler() if next(model.parameters()).is_cuda else torch.cpu.amp.GradScaler()
-    best_hter = np.inf
+    best_hter = 1.0
 
     flooding_impactor = 0.001
     for epoch in range(1, args.max_epoch+1):
