@@ -29,7 +29,7 @@ def run_test(test_csv, args, device):
     model.load_state_dict(torch.load(args.model_path))
     save_score = False
 
-    AUC_value, HTER_value = test_model(model, test_loader, device)
+    AUC_value, HTER_value = test_model(model, test_loader, device, video_format=args.video_format)
 
     print(f'Results: AUC= {AUC_value:.4f}, HTER= {HTER_value:.4f} \n')
 
@@ -95,6 +95,7 @@ if __name__ == "__main__":
     ########## argument should be noted
     parser.add_argument("--model_path", default='checkpoints/ocim.pth', type=str, help="path to saved weights")
     parser.add_argument("--test_csv", type=str, help="csv contains test data")
+    parser.add_argument("--video_format", type=bool, help="video format or not")
 
     args = parser.parse_args()
 
