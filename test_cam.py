@@ -56,11 +56,12 @@ def run_cam_test(args, device):
             for b in detect_box:
                 box = b['box']
                 face = frame[ max(0, box[1] - PADDING) : min(w-1, box[1]+box[3] + PADDING), max(0, box[0] - PADDING) : min(h-1, box[0]+box[2] + PADDING) ]
+                print(face.shape)
                 input_frame = preprocess_frame(face).to(device)
                 output = model(input_frame, cf=None)
                 raw_scores = output.softmax(dim=1)[:, 1].cpu().data.numpy()[0]
-                print("frame output:", output)
-                print("raw scores: ", raw_scores)
+                # print("frame output:", output)
+                # print("raw scores: ", raw_scores)
                 if (raw_scores > THRESHOLD):
                     cv2.rectangle(frame, (box[0], box[1]), (box[0]+box[2], box[1]+box[3]), (0, 255, 0), 4)
                     # cv2.rectangle(frame, (0, 0), (frame.shape[1] - 1, frame.shape[0] - 1), (0, 255, 0), 4)
@@ -101,7 +102,7 @@ if __name__ == "__main__":
     parser.add_argument("--input_shape", default=(224, 224), type=tuple, help="Neural Network input shape")
 
     ########## argument should be noted
-    parser.add_argument("--model_path", default='checkpoints/ocim.pth', type=str, help="path to saved weights")
+    parser.add_argument("--model_path", default='checkpoints/best_model.pth', type=str, help="path to saved weights")
 
     args = parser.parse_args()
     run_cam_test(args=args,

@@ -66,6 +66,21 @@ def performances_cross_db(prediction_scores, gt_labels, pos_label=1, verbose=Tru
 
     return test_auc, fpr[right_index], FRR[right_index], HTER[right_index]
 
+def performances_cross_db_th(prediction_scores, gt_labels, pos_label=1, verbose=True):
+
+    data = [{'map_score': score, 'label': label} for score, label in zip(prediction_scores, gt_labels)]
+    fpr, tpr, threshold = roc_curve(gt_labels, prediction_scores, pos_label=pos_label)
+
+    val_eer, val_threshold, right_index = get_eer_threhold_cross_db(fpr, tpr, threshold)
+    test_auc = auc(fpr, tpr)
+
+    FRR = 1 - tpr    # FRR = 1 - TPR
+    HTER = (fpr+FRR)/2.0    # error recognition rate &  reject recognition rate
+
+    if verbose is True:
+        print(f'AUC@ROC is {test_auc}, HTER is {HTER[right_index]}, APCER: {fpr[right_index]}, BPCER: {FRR[right_index]}, EER is {val_eer}, TH is {val_threshold}')
+
+    return test_auc, fpr[right_index], FRR[right_index], HTER[right_index], val_threshold
 
 def evalute_threshold_based(prediction_scores, gt_labels, threshold):
     data = [{'map_score': score, 'label': label} for score, label in zip(prediction_scores, gt_labels)]

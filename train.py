@@ -129,7 +129,7 @@ def run_training(train_csv, test_csv, log_file, output_path, args, device):
 
         if (HTER_value < best_hter) :
             best_hter = HTER_value
-            torch.save( model.state_dict(), os.path.join('checkpoints/', 'best_model.pth'))
+            torch.save(model.state_dict(), os.path.join('checkpoints/', 'best_model.pth'))
 
 
 def test_model(model, data_loader, device, video_format=True):
