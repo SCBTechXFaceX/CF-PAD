@@ -65,6 +65,7 @@ def run_training(train_csv, test_csv, log_file, output_path, args, device):
     cen_criterion = torch.nn.CrossEntropyLoss().to(device)
     scaler = torch.cuda.amp.GradScaler() if next(model.parameters()).is_cuda else torch.cpu.amp.GradScaler()
     best_hter = 1.0
+    best_epoch = 0
 
     flooding_impactor = 0.001
     for epoch in range(1, args.max_epoch+1):
@@ -129,8 +130,9 @@ def run_training(train_csv, test_csv, log_file, output_path, args, device):
 
         if (HTER_value < best_hter) :
             best_hter = HTER_value
+            best_epoch = epoch
             torch.save(model.state_dict(), os.path.join('checkpoints/', 'best_model.pth'))
-
+    print(f'best hter is {best_hter} at epoch {best_epoch}')
 
 def test_model(model, data_loader, device, video_format=True):
     model.eval()
