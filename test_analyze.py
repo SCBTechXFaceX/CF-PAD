@@ -114,7 +114,7 @@ if __name__ == "__main__":
     parser.add_argument("--model_name", default='resnet18', type=str, help="model backbone")
 
     parser.add_argument("--input_shape_width", default=256, type=int, help="Neural Network input shape")
-    parser.add_argument("--input_shape_heigth", default=256, type=int, help="Neural Network input shape")
+    parser.add_argument("--input_shape_height", default=256, type=int, help="Neural Network input shape")
     parser.add_argument("--batch_size", default=128, type=int, help="train batch size")
 
     ########## argument should be noted
