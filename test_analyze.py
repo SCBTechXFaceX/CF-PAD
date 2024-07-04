@@ -113,7 +113,8 @@ if __name__ == "__main__":
     parser.add_argument("--prefix", default='CF', type=str, help="description")
     parser.add_argument("--model_name", default='resnet18', type=str, help="model backbone")
 
-    parser.add_argument("--input_shape", default=(224, 224), type=tuple, help="Neural Network input shape")
+    parser.add_argument("--input_shape_width", default=256, type=int, help="Neural Network input shape")
+    parser.add_argument("--input_shape_heigth", default=256, type=int, help="Neural Network input shape")
     parser.add_argument("--batch_size", default=128, type=int, help="train batch size")
 
     ########## argument should be noted
@@ -126,6 +127,7 @@ if __name__ == "__main__":
     print(f"TEST DATA: {args.test_csv} \n  Backbone: {args.model_name},  model_path: {args.model_path},  bs: {args.batch_size} \n")
     print("---------------------------------------")
 
+    args.input_shape = (args.input_shape_width, args.input_shape_height)
 
     run_test(test_csv=args.test_csv,
                  args=args,

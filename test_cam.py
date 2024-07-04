@@ -100,8 +100,6 @@ if __name__ == "__main__":
     parser.add_argument("--prefix", default='CF', type=str, help="description")
     parser.add_argument("--model_name", default='resnet18', type=str, help="model backbone")
 
-    parser.add_argument("--input_shape", default=(224, 224), type=tuple, help="Neural Network input shape")
-
     ########## argument should be noted
     parser.add_argument("--model_path", default='checkpoints/best_model.pth', type=str, help="path to saved weights")
 

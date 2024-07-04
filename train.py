@@ -197,7 +197,8 @@ if __name__ == "__main__":
     parser.add_argument("--test_csv", type=str, help="csv contains test data")
 
     parser.add_argument('--lr', type=list, help='Learning rate', default=[0.001, 0.01])
-    parser.add_argument("--input_shape", default=(224, 224), type=tuple, help="Neural Network input shape")
+    parser.add_argument("--input_shape_width", default=256, type=int, help="Neural Network input shape")
+    parser.add_argument("--input_shape_heigth", default=256, type=int, help="Neural Network input shape")
     parser.add_argument("--max_epoch", default=50, type=int, help="maximum epochs")
     parser.add_argument("--batch_size", default=128, type=int, help="train batch size")
     parser.add_argument("--pretrain", default=True, type=lambda x: (str(x).lower() in ['true','1', 'yes']))
@@ -220,7 +221,9 @@ if __name__ == "__main__":
     log_file.write(f'train data: {args.training_csv} \n test data: {args.test_csv} \n  causality ops: {args.ops}, prob: {args.prob}, norm feature: {args.norm} \n  model_name: {args.model_name}, {args.pretrain}, lr: {args.lr}, prefix: {args.prefix}, bs: {args.batch_size} \n')
     log_file.write(f"-------------------------------------------- \n")
     log_file.flush()
-
+    
+    args.input_shape = (args.input_shape_width, args.input_shape_height)
+    
     run_training(train_csv=args.training_csv,
                  test_csv=args.test_csv,
                  log_file=log_file,
