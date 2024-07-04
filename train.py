@@ -60,7 +60,7 @@ def run_training(train_csv, test_csv, log_file, output_path, args, device):
             ], lr=float(args.lr[0]), momentum=0.9, weight_decay=0.0005)
 
     #lr_scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.998)
-    lr_scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=[30,45], gamma=0.5)
+    lr_scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=[10,15], gamma=0.5)
     #lr_scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min', factor=0.5, patience=15)
     cen_criterion = torch.nn.CrossEntropyLoss().to(device)
     scaler = torch.cuda.amp.GradScaler() if next(model.parameters()).is_cuda else torch.cpu.amp.GradScaler()
