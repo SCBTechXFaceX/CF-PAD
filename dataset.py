@@ -33,7 +33,7 @@ class TrainDataset(Dataset):
             albumentations.Resize(height=256, width=256),
             # albumentations.RandomCrop(height=input_shape[0], width=input_shape[0]),
             albumentations.HorizontalFlip(),
-            albumentations.RandomGamma(gamma_limit=(80, 180)), # 0.5, 1.5
+            # albumentations.RandomGamma(gamma_limit=(80, 180)), # 0.5, 1.5
             # albumentations.RGBShift(r_shift_limit=20, g_shift_limit=20, b_shift_limit=20),
             # albumentations.ColorJitter(brightness=0.1, contrast=0.1, saturation=0.1, hue=0.1),
             albumentations.Normalize(PRE__MEAN, PRE__STD, always_apply=True),
