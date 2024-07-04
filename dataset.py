@@ -31,7 +31,7 @@ class TrainDataset(Dataset):
         self.dataframe = pd.read_csv(csv_file)
         self.composed_transformations = albumentations.Compose([
             albumentations.Resize(height=256, width=256),
-            albumentations.RandomCrop(height=input_shape[0], width=input_shape[0]),
+            # albumentations.RandomCrop(height=input_shape[0], width=input_shape[0]),
             albumentations.HorizontalFlip(),
             albumentations.RandomGamma(gamma_limit=(80, 180)), # 0.5, 1.5
             albumentations.RGBShift(r_shift_limit=20, g_shift_limit=20, b_shift_limit=20),
@@ -68,7 +68,7 @@ class TrainDataset(Dataset):
 
 class TestDataset(Dataset):
 
-    def __init__(self, csv_file, input_shape=(224, 224)):
+    def __init__(self, csv_file, input_shape=(256, 256)):
         self.dataframe = pd.read_csv(csv_file)
         self.composed_transformations = albumentations.Compose([
             albumentations.Resize(height=input_shape[0], width=input_shape[1]),
