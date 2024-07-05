@@ -39,11 +39,11 @@ def save_checkpoint(save_path, epoch, model, loss, lr_scheduler, optimizer):
     torch.save(save_state, save_path)
 
 def run_training(train_csv, test_csv, log_file, output_path, args, device):
-    train_dataset = TrainDataset(csv_file=train_csv, input_shape=args.input_shape)
+    train_dataset = TrainDataset(csv_file=train_csv, input_shape=args.input_shape, multiclass=args.multiclass)
     train_loader = DataLoader(train_dataset, batch_size=args.batch_size,  sampler=ApplyWeightedRandomSampler(train_csv),
                                 num_workers=4, pin_memory=True, drop_last=True)
 
-    test_dataset = TestDataset(csv_file=test_csv, input_shape=args.input_shape)
+    test_dataset = TestDataset(csv_file=test_csv, input_shape=args.input_shape, multiclass=args.multiclass)
     test_loader = DataLoader(test_dataset, batch_size=args.batch_size, shuffle=False, num_workers=4, pin_memory=True)
 
     checkpoint_save_dir = os.path.join('checkpoints/', args.prefix)
@@ -207,6 +207,7 @@ if __name__ == "__main__":
     parser.add_argument("--ops", default=['cs','dropout','replace'], type=str, nargs='*', help="operations for causality")
     parser.add_argument("--norm", default=False, type=lambda x: (str(x).lower() in ['true','1', 'yes']))
     parser.add_argument("--prob", default=0.2, type=float, help="probabilities of CF")
+    parser.add_argument("--multiclass", default=False, type=bool, help="select binaryclass/multiclass model")
 
     args = parser.parse_args()
 

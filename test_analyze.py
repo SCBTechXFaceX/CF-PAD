@@ -49,7 +49,8 @@ def test_model(model, data_loader, device, save_path, video_format=True, save_sc
         for i, data in enumerate(tqdm(data_loader)):
             raw, labels, img_pathes = data["images"].to(device), data["labels"], data["img_path"]
             output = model(raw, cf=None)
-
+            # print(f'label shape = {labels.shape}')
+            # print(f'output shape = {output.shape}')
             raw_scores = output.softmax(dim=1)[:, 1].cpu().data.numpy()
             raw_test_scores.extend(raw_scores)
             image_paths.extend(img_pathes)

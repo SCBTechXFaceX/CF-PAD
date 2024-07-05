@@ -26,11 +26,11 @@ def ApplyWeightedRandomSampler(dataset_csv):
 
 class TrainDataset(Dataset):
 
-    def __init__(self, csv_file, input_shape=(224, 224)):
+    def __init__(self, csv_file, input_shape=(224, 224), multiclass=False):
         #self.image_dir = image_dir
         self.dataframe = pd.read_csv(csv_file)
         self.composed_transformations = albumentations.Compose([
-            albumentations.Resize(height=256, width=256),
+            albumentations.Resize(height=input_shape[0], width=input_shape[1]),
             # albumentations.RandomCrop(height=input_shape[0], width=input_shape[0]),
             albumentations.HorizontalFlip(),
             # albumentations.RandomGamma(gamma_limit=(80, 180)), # 0.5, 1.5
@@ -39,6 +39,7 @@ class TrainDataset(Dataset):
             albumentations.Normalize(PRE__MEAN, PRE__STD, always_apply=True),
             ToTensorV2(),
         ])
+        self.multiclass = multiclass
 
     def __len__(self):
         return len(self.dataframe)
@@ -68,13 +69,14 @@ class TrainDataset(Dataset):
 
 class TestDataset(Dataset):
 
-    def __init__(self, csv_file, input_shape=(256, 256)):
+    def __init__(self, csv_file, input_shape=(256, 256), multiclass=False):
         self.dataframe = pd.read_csv(csv_file)
         self.composed_transformations = albumentations.Compose([
             albumentations.Resize(height=input_shape[0], width=input_shape[1]),
             albumentations.Normalize(PRE__MEAN, PRE__STD, always_apply=True),
             ToTensorV2(),
         ])
+        self.multiclass = multiclass
 
     def __len__(self):
         return len(self.dataframe)

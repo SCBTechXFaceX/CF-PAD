@@ -53,7 +53,7 @@ def get_eer_threhold_cross_db(fpr, tpr, threshold):
 def performances_cross_db(prediction_scores, gt_labels, pos_label=1, verbose=True):
 
     data = [{'map_score': score, 'label': label} for score, label in zip(prediction_scores, gt_labels)]
-    fpr, tpr, threshold = roc_curve(gt_labels, prediction_scores, pos_label=pos_label)
+    fpr, tpr, threshold = roc_curve(gt_labels == 1, prediction_scores, pos_label=pos_label) # handle multiclass
 
     val_eer, val_threshold, right_index = get_eer_threhold_cross_db(fpr, tpr, threshold)
     test_auc = auc(fpr, tpr)
@@ -105,7 +105,7 @@ def compute_video_score(video_ids, predictions, labels):
     for i in range(len(video_ids)):
         video_key = video_ids[i]
         predictions_dict[video_key].append(predictions[i])
-        labels_dict[video_key].append(labels[i])
+        labels_dict[video_key].append(labels[i] == 1) # handle multiclass
 
     new_predictions, new_labels, new_video_ids = [], [], []
 
