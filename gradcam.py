@@ -1,0 +1,127 @@
+from pytorch_grad_cam import GradCAM, HiResCAM, ScoreCAM, GradCAMPlusPlus, AblationCAM, XGradCAM, EigenCAM, FullGrad
+from pytorch_grad_cam.utils.model_targets import ClassifierOutputTarget
+from pytorch_grad_cam.utils.image import show_cam_on_image
+import numpy as np
+import cv2
+import os
+import sys
+sys.path.append('..')
+
+import numpy as np
+import os
+import random
+import argparse
+import albumentations
+import torch
+from albumentations.pytorch import ToTensorV2
+from mtcnn import MTCNN
+from model import MixStyleResCausalModel
+
+PRE__MEAN = [0.485, 0.456, 0.406]
+PRE__STD = [0.229, 0.224, 0.225]
+INPUT__FACE__SIZE = 256
+THRESHOLD = .5
+PADDING = 0
+
+def preprocess_frame_pipe():
+    return albumentations.Compose([
+        albumentations.Resize(height=INPUT__FACE__SIZE, width=INPUT__FACE__SIZE),
+        albumentations.Normalize(PRE__MEAN, PRE__STD, always_apply=True),
+        ToTensorV2(),    
+    ])
+
+def preprocess_frame(frame):
+    frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+    frame = preprocess_frame_pipe()(image=frame)['image']
+    frame = torch.tensor(frame).unsqueeze(0)
+    return frame
+
+def run_cam_test(args, device):
+    model = torch.nn.DataParallel(MixStyleResCausalModel(model_name=args.model_name,  pretrained=False, num_classes=2, ms_layers=[]))
+    model = model.to(device)
+    model.load_state_dict(torch.load(args.model_path, map_location=device))
+    
+    target_layers = [model.module.feature_extractor.layer4[-1]]
+    targets = [ClassifierOutputTarget(1)]
+
+    model.eval()
+    
+    cam = GradCAMPlusPlus(model=model, target_layers=target_layers)
+
+    cap = cv2.VideoCapture(0)  # 0 is the default camera
+    detector = MTCNN()
+
+    if not cap.isOpened():
+        print("Error: Could not open video stream.")
+        return
+
+    # with torch.no_grad():
+    while True:
+        ret, frame = cap.read()
+        w, h = frame.shape[0], frame.shape[1]
+        if not ret:
+            break
+        detect_box = detector.detect_faces(frame)
+        for b in detect_box:
+            box = b['box']
+            x0 = max(0, box[0] - PADDING)
+            x1 = min(h - 1, box[0] + box[2] + PADDING)
+            y0 = max(0, box[1] - PADDING)
+            y1 = min(w - 1, box[1] + box[3] + PADDING)
+            face = frame[y0:y1, x0:x1]
+            height, width, channel = face.shape
+            input_frame = preprocess_frame(face).to(device)
+            output = model(input_frame, cf=None)
+            raw_scores = output.softmax(dim=1)[:, 1].cpu().data.numpy()[0]
+
+            grayscale_cam = cam(input_tensor=input_frame, targets=targets, eigen_smooth=True, aug_smooth=True)
+            grayscale_cam = grayscale_cam[0, :]
+            visualization = show_cam_on_image((np.float32(cv2.resize(face, (256, 256))) / 255) , grayscale_cam, use_rgb=False)
+            frame[y0:y1, x0:x1] = cv2.resize(visualization, (width, height))
+
+            if (raw_scores > THRESHOLD):
+                cv2.rectangle(frame, (box[0], box[1]), (box[0]+box[2], box[1]+box[3]), (0, 255, 0), 4)
+                # cv2.rectangle(frame, (0, 0), (frame.shape[1] - 1, frame.shape[0] - 1), (0, 255, 0), 4)
+            else : cv2.rectangle(frame, (box[0], box[1]), (box[0]+box[2], box[1]+box[3]), (0, 0, 255), 4)
+            cv2.putText(frame, str(raw_scores), (20, 20),
+                    cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 1, cv2.LINE_AA)
+            cv2.putText(frame, str(face.shape), (20, 100),
+                    cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 1, cv2.LINE_AA)
+        cv2.imshow('image', frame)
+        if cv2.waitKey(1) & 0xFF == 27:  # esc key
+            break
+    cap.release()
+    cv2.destroyAllWindows()
+
+def set_seed(seed):
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)  # if you are using multi-GPU.
+    np.random.seed(seed)  # Numpy module.
+    random.seed(seed)  # Python random module.
+
+    torch.backends.cudnn.enabled = True
+    torch.backends.cudnn.benchmark = True
+    os.environ['CUBLAS_WORKSPACE_CONFIG'] = ':4096:8'
+    os.environ['PYTHONHASHSEED'] = str(seed)
+
+if __name__ == "__main__":
+    if (torch.cuda.is_available()):
+        torch.cuda.empty_cache()
+        device = torch.device('cuda')
+    else :
+        device = torch.device('cpu')
+
+    set_seed(seed=777)
+
+    parser = argparse.ArgumentParser(description='CF baseline')
+    parser.add_argument("--prefix", default='CF', type=str, help="description")
+    parser.add_argument("--model_name", default='resnet18', type=str, help="model backbone")
+
+    ########## argument should be noted
+    parser.add_argument("--model_path", default='checkpoints/best_model.pth', type=str, help="path to saved weights")
+
+    args = parser.parse_args()
+    run_cam_test(args=args,
+                 device=device)
+
