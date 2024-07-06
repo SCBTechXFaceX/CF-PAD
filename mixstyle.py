@@ -70,7 +70,7 @@ class MixStyle(nn.Module):
         #######################
         elif self.mix == "crosssample":
             assert labels != None, 'Label is None'
-            contrast_bf = (labels.long() == 1).nonzero(as_tuple=True)[0] # find bonafide
+            contrast_bf = ((labels == 1).long()).nonzero(as_tuple=True)[0] # find bonafide
             contrast_attack = (labels.long()  == 0).nonzero(as_tuple=True)[0]  # find attack
             perm_idx_bf = contrast_bf[torch.randperm(len(contrast_bf))]
             perm_idx_attack = contrast_attack[torch.randperm(len(contrast_attack))]

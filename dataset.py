@@ -57,6 +57,18 @@ class TrainDataset(Dataset):
             raise Exception('Error: Image is None.')
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         label = 1 if label_str == 'bonafide' else 0
+        
+        # handle multiclass target
+        if (self.multiclass):
+            if (label_str ==  'print'):
+                label = 2
+            if (label_str ==  'paper_cut'):
+                label = 3 
+            if (label_str == 'replay'):
+                label = 4
+            else:
+                label = 0 
+
         map_x = torch.ones((14,14)) if label == 1 else torch.zeros((14, 14))
 
         image = self.composed_transformations(image = image)['image']
@@ -68,6 +80,7 @@ class TrainDataset(Dataset):
         }
 
 class TestDataset(Dataset):
+
 
     def __init__(self, csv_file, input_shape=(256, 256), multiclass=False):
         self.dataframe = pd.read_csv(csv_file)
@@ -90,6 +103,17 @@ class TestDataset(Dataset):
             raise Exception('Error: Image is None.')
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         label = 1 if label_str == 'bonafide' else 0
+        
+        # handle multiclass target
+        if (self.multiclass):
+            if (label_str ==  'print'):
+                label = 2
+            if (label_str ==  'paper_cut'):
+                label = 3 
+            if (label_str == 'replay'):
+                label = 4
+            else:
+                label = 0 
 
         image = self.composed_transformations(image=image)['image']
 
