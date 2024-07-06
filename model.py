@@ -283,8 +283,7 @@ class MixStyleResCausalModel(nn.Module):
         self.channel_shuffle = ChannelShuffleCustom(groups=16)
 
     def forward(self, input, labels=None, cf=['cs', 'dropout', 'replace'], norm=True):
-        labels = torch.tensor(labels)
-        labels = (labels == 1).int() # for handle multiclass
+        labels = (labels == 1) + 0 # for handle multiclass
         feature = self.feature_extractor(input, labels)  # Batch, 512, 7, 7
 
         cls_feature = self.avgpool(feature)
