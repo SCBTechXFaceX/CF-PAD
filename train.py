@@ -149,7 +149,9 @@ def test_model(model, data_loader, device, video_format=True):
             raw_scores = output.softmax(dim=1)[:, 1].cpu().data.numpy()
             #raw_scores = 1 - raw_scores
             raw_test_scores.extend(raw_scores)
-            gt_labels.extend(labels.data.numpy())
+
+            labels_np = labels.data.numpy()
+            gt_labels.extend(np.where(labels_np == 1, 1, 0))
 
             for j in range(raw.shape[0]):
                 image_name = os.path.splitext(os.path.basename(img_pathes[j]))[0]
