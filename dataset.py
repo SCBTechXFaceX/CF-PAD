@@ -60,11 +60,13 @@ class TrainDataset(Dataset):
         
         # handle multiclass target
         if (self.multiclass):
-            if (label_str ==  'print'):
+            if (label_str == 'bonafide'):
+                label = 1
+            elif (label_str ==  'print'):
                 label = 2
-            if (label_str ==  'paper_cut'):
+            elif (label_str ==  'paper_cut'):
                 label = 3 
-            if (label_str == 'replay'):
+            elif (label_str == 'replay'):
                 label = 4
             else:
                 label = 0 
@@ -106,11 +108,13 @@ class TestDataset(Dataset):
         
         # handle multiclass target
         if (self.multiclass):
-            if (label_str ==  'print'):
+            if (label_str == 'bonafide'):
+                label = 1
+            elif (label_str ==  'print'):
                 label = 2
-            if (label_str ==  'paper_cut'):
+            elif (label_str ==  'paper_cut'):
                 label = 3 
-            if (label_str == 'replay'):
+            elif (label_str == 'replay'):
                 label = 4
             else:
                 label = 0 
