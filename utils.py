@@ -54,9 +54,9 @@ def performances_cross_db(prediction_scores, gt_labels, pos_label=1, verbose=Tru
 
     data = [{'map_score': score, 'label': label} for score, label in zip(prediction_scores, gt_labels)]
     fpr, tpr, threshold = roc_curve(gt_labels, prediction_scores, pos_label=pos_label) # handle multiclass
-    print('gt_labels = ', gt_labels)
-    print('fpr', fpr)
-    print('tpr', tpr)
+    # print('gt_labels = ', gt_labels)
+    # print('fpr', fpr)
+    # print('tpr', tpr)
 
     val_eer, val_threshold, right_index = get_eer_threhold_cross_db(fpr, tpr, threshold)
     test_auc = auc(fpr, tpr)
