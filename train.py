@@ -154,7 +154,7 @@ def test_model(model, data_loader, device, video_format=True, multiclass=False):
             raw_scores = output.softmax(dim=1)[:, 1].cpu().data.numpy()
             raw_test_scores.extend(raw_scores)
             #raw_scores = 1 - raw_scores
-            predictions = np.argmax(raw_scores, axis=1)
+            predictions = np.argmax(output, axis=1)
             all_predictions.extend(predictions)
             all_labels.extend(labels)
             
