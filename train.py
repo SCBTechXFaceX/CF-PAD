@@ -1,4 +1,6 @@
 import sys
+
+from sklearn.base import accuracy_score
 sys.path.append('..')
 
 import numpy as np
@@ -119,11 +121,11 @@ def run_training(train_csv, test_csv, log_file, output_path, args, device):
             log_file.flush()
 
         print ('------------ test 1 -------------------')
-        AUC_value, HTER_value = test_model(model, test_loader, device=device)
+        AUC_value, HTER_value, ACC_value = test_model(model, test_loader, device=device, multiclass=args.multiclass)
         
         lr_scheduler.step()
         #lr_scheduler.step(hter)
-        write_txt = 'Test: AUC=%.4f, HTER= %.4f \n' % (AUC_value, HTER_value)
+        write_txt = 'Test: AUC=%.4f, HTER= %.4f, ACC= %.4f \n' % (AUC_value, HTER_value, ACC_value)
         tqdm.write(write_txt)
         log_file.write(write_txt)
         log_file.flush()
@@ -134,12 +136,15 @@ def run_training(train_csv, test_csv, log_file, output_path, args, device):
             torch.save(model.state_dict(), os.path.join('checkpoints/', 'best_model.pth'))
     print(f'best hter is {best_hter} at epoch {best_epoch}')
 
-def test_model(model, data_loader, device, video_format=True):
+def test_model(model, data_loader, device, video_format=True, multiclass=False):
     model.eval()
 
     raw_test_scores, gt_labels = [], []
     raw_scores_dict = []
     raw_test_video_ids = []
+    all_predictions = []
+    all_labels = []
+
     with torch.no_grad():
         # for train
         for i, data in enumerate(tqdm(data_loader)):
@@ -147,9 +152,12 @@ def test_model(model, data_loader, device, video_format=True):
             output = model(raw, cf=None)
 
             raw_scores = output.softmax(dim=1)[:, 1].cpu().data.numpy()
-            #raw_scores = 1 - raw_scores
             raw_test_scores.extend(raw_scores)
-
+            #raw_scores = 1 - raw_scores
+            predictions = np.argmax(raw_scores, axis=1)
+            all_predictions.extend(predictions)
+            all_labels.extend(labels)
+            
             labels_np = labels.data.numpy()
             gt_labels.extend(np.where(labels_np == 1, 1, 0))
 
@@ -164,8 +172,9 @@ def test_model(model, data_loader, device, video_format=True):
         raw_test_scores = ( raw_test_scores - raw_test_stats[0]) / raw_test_stats[1]
 
         AUC_values, _, _, HTER_values = performances_cross_db(raw_test_scores, gt_labels)
-
-    return AUC_values, HTER_values
+    
+    accuracy = accuracy_score(all_labels, all_predictions)
+    return AUC_values, HTER_values, accuracy
 
 
 def set_seed(seed):
