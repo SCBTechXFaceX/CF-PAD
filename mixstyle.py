@@ -71,11 +71,13 @@ class MixStyle(nn.Module):
         elif self.mix == "crosssample":
             assert labels != None, 'Label is None'
             contrast_3d = (labels.long()  == 0).nonzero(as_tuple=True)[0]  # find 3d mask attack
+            print('contrast 3d: ' ,contrast_3d)
             contrast_bf = (labels.long() == 1).nonzero(as_tuple=True)[0] # find bonafide
             contrast_print = (labels.long() == 2).nonzero(as_tuple=True)[0] # find print attack
             contrast_cut = (labels.long() == 3).nonzero(as_tuple=True)[0] # find paper cut attack
             contrast_replay = (labels.long() == 4).nonzero(as_tuple=True)[0] # find replay attack
-            
+            print('contrast replay: ' ,contrast_replay)
+
             perm_idx_3d = contrast_3d[torch.randperm(len(contrast_3d))]
             perm_idx_bf = contrast_bf[torch.randperm(len(contrast_bf))]
             perm_idx_print = contrast_print[torch.randperm(len(contrast_print))]
