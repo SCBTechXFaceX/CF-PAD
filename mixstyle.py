@@ -70,12 +70,20 @@ class MixStyle(nn.Module):
         #######################
         elif self.mix == "crosssample":
             assert labels != None, 'Label is None'
-            contrast_bf = ((labels == 1).long()).nonzero(as_tuple=True)[0] # find bonafide
-            contrast_attack = (labels.long()  == 0).nonzero(as_tuple=True)[0]  # find attack
+            contrast_3d = (labels.long()  == 0).nonzero(as_tuple=True)[0]  # find 3d mask attack
+            contrast_bf = (labels.long() == 1).nonzero(as_tuple=True)[0] # find bonafide
+            contrast_print = (labels.long() == 2).nonzero(as_tuple=True)[0] # find print attack
+            contrast_cut = (labels.long() == 3).nonzero(as_tuple=True)[0] # find paper cut attack
+            contrast_replay = (labels.long() == 4).nonzero(as_tuple=True)[0] # find replay attack
+            
+            perm_idx_3d = contrast_3d[torch.randperm(len(contrast_3d))]
             perm_idx_bf = contrast_bf[torch.randperm(len(contrast_bf))]
-            perm_idx_attack = contrast_attack[torch.randperm(len(contrast_attack))]
-            old_idx = torch.cat([contrast_bf, contrast_attack], 0)
-            perm = torch.cat([perm_idx_bf, perm_idx_attack], 0)
+            perm_idx_print = contrast_print[torch.randperm(len(contrast_print))]
+            perm_idx_cut = contrast_cut[torch.randperm(len(contrast_cut))]
+            perm_idx_replay = contrast_replay[torch.randperm(len(contrast_replay))]
+
+            old_idx = torch.cat([contrast_bf, contrast_3d, contrast_print, contrast_cut, contrast_replay], 0)
+            perm = torch.cat([perm_idx_bf, perm_idx_3d, perm_idx_print, perm_idx_cut, perm_idx_replay], 0)
             perm = perm[torch.argsort(old_idx)]
 
         else:
