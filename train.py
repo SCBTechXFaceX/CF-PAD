@@ -1,6 +1,6 @@
 import sys
 
-from sklearn.base import accuracy_score
+from sklearn.metrics import accuracy_score
 sys.path.append('..')
 
 import numpy as np
