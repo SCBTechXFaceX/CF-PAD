@@ -15,3 +15,4 @@ dependencies:
     - albumentations
     - mtcnn
     - tensorflow
+    - grad-cam
