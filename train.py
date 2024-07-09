@@ -81,6 +81,7 @@ def run_training(train_csv, test_csv, log_file, output_path, args, device):
             loss_total = AvgrageMeter()
             loss_1_total = AvgrageMeter()
             loss_2_total = AvgrageMeter()
+            accuracy_total = AvgrageMeter()
 
             progress_bar = tqdm(train_loader)
             for i, data in enumerate(progress_bar):
@@ -96,10 +97,13 @@ def run_training(train_csv, test_csv, log_file, output_path, args, device):
                     loss_2 = (loss_2 - 0.001).abs() + 0.001
                     loss = loss_1 + loss_2
                     #loss = (loss - flooding_impactor).abs() + flooding_impactor
+                
+                accuracy = accuracy_score(np.argmax(output.cpu().data.float().numpy(), axis=1), labels.cpu().data.numpy())
 
                 loss_total.update(loss.data, raw.shape[0])
                 loss_1_total.update(loss_1.data, raw.shape[0])
                 loss_2_total.update(loss_2.data, raw.shape[0])
+                accuracy_total.update(accuracy, raw.shape[0])
 
                 clip_grad_norm_(model.parameters(), max_norm=5, norm_type=2)
 
@@ -116,8 +120,8 @@ def run_training(train_csv, test_csv, log_file, output_path, args, device):
 
             torch.save( model.state_dict(), os.path.join(checkpoint_save_dir, '{}.pth'.format(epoch)))
 
-            tqdm.write('Epoch: %d, Train: loss_total= %.4f,  loss_1_total= %.4f, loss_2_total= %.4f, lr_1=%.6f, lr_2=%.6f \n' % (epoch, loss_total.avg, loss_1_total.avg, loss_2_total.avg, optimizer.param_groups[0]['lr'], optimizer.param_groups[1]['lr']))# , curr_lr[0]
-            log_file.write('Epoch: %d, Train: loss_total= %.4f, loss_1_total= %.4f, loss_2_total= %.4f,  lr_2=%.6f, lr_2=%.6f \n' % (epoch, loss_total.avg, loss_1_total.avg, loss_2_total.avg, optimizer.param_groups[0]['lr'], optimizer.param_groups[1]['lr'])) #,  curr_lr[0]
+            tqdm.write('Epoch: %d, Train: loss_total= %.4f,  loss_1_total= %.4f, loss_2_total= %.4f, lr_1=%.6f, lr_2=%.6f, accuracy_total=%.6f \n' % (epoch, loss_total.avg, loss_1_total.avg, loss_2_total.avg, optimizer.param_groups[0]['lr'], optimizer.param_groups[1]['lr']), accuracy_total)# , curr_lr[0]
+            log_file.write('Epoch: %d, Train: loss_total= %.4f, loss_1_total= %.4f, loss_2_total= %.4f,  lr_2=%.6f, lr_2=%.6f, accuracy_total=%.6f \n' % (epoch, loss_total.avg, loss_1_total.avg, loss_2_total.avg, optimizer.param_groups[0]['lr'], optimizer.param_groups[1]['lr']), accuracy_total) #,  curr_lr[0]
             log_file.flush()
 
         print ('------------ test 1 -------------------')
