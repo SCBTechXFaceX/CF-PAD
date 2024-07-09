@@ -193,8 +193,9 @@ def test_model(model, data_loader, device, video_format=True, multiclass=False):
         AUC_values, _, _, HTER_values = performances_cross_db(raw_test_scores, gt_labels)
     
     accuracy = accuracy_score(all_labels, all_predictions)
-    class_names = ["3D_mask", "bonafide", "print", "paper_cut", "replay"]  # Replace with your actual class names
-    print_per_class_accuracy(np.array(all_labels), np.array(all_predictions), class_names)
+    if (multiclass):
+        class_names = ["3D_mask", "bonafide", "print", "paper_cut", "replay"]  # Replace with your actual class names
+        print_per_class_accuracy(np.array(all_labels), np.array(all_predictions), class_names)
     return AUC_values, HTER_values, accuracy
 
 

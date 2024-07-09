@@ -34,7 +34,7 @@ def preprocess_frame(frame):
     return frame
 
 def run_cam_test(args, device):
-    model = torch.nn.DataParallel(MixStyleResCausalModel(model_name=args.model_name,  pretrained=False, num_classes=2, ms_layers=[]))
+    model = torch.nn.DataParallel(MixStyleResCausalModel(model_name=args.model_name,  pretrained=False, num_classes=args.num_classes, ms_layers=[]))
     model = model.to(device)
     model.load_state_dict(torch.load(args.model_path, map_location=device))
     model.eval()
@@ -99,6 +99,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='CF baseline')
     parser.add_argument("--prefix", default='CF', type=str, help="description")
     parser.add_argument("--model_name", default='resnet18', type=str, help="model backbone")
+    parser.add_argument("--num_classes", default=2, type=int, help="model backbone")
 
     ########## argument should be noted
     parser.add_argument("--model_path", default='checkpoints/best_model.pth', type=str, help="path to saved weights")
