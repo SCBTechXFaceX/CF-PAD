@@ -194,9 +194,7 @@ def test_model(model, data_loader, device, video_format=True, multiclass=False):
     
     accuracy = accuracy_score(all_labels, all_predictions)
     class_names = ["3D_mask", "bonafide", "print", "paper_cut", "replay"]  # Replace with your actual class names
-    print("gt_labels shape = ", np.array(gt_labels).shape)
-    print("predictions shape = ", np.array(predictions).shape)
-    print_per_class_accuracy(np.array(gt_labels), np.array(predictions), class_names)
+    print_per_class_accuracy(np.array(gt_labels), np.array(all_predictions), class_names)
     return AUC_values, HTER_values, accuracy
 
 
