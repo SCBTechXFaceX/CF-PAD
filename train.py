@@ -1,6 +1,6 @@
 import sys
 
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import accuracy_score, multilabel_confusion_matrix
 sys.path.append('..')
 
 import numpy as np
@@ -31,6 +31,21 @@ from model import MixStyleResCausalModel
 import cv2
 
 torch.autograd.set_detect_anomaly(True)
+
+def compute_per_class_accuracy(labels, preds, num_classes):
+    mcm = multilabel_confusion_matrix(labels, preds, labels=range(num_classes))
+    accuracies = []
+    for i in range(num_classes):
+        tn, fp, fn, tp = mcm[i].ravel()
+        accuracy = (tp + tn) / (tp + tn + fp + fn)
+        accuracies.append(accuracy)
+    return accuracies
+
+def print_per_class_accuracy(labels, preds, class_names):
+    num_classes = len(class_names)
+    accuracies = compute_per_class_accuracy(labels, preds, num_classes)
+    for i, accuracy in enumerate(accuracies):
+        print(f'Accuracy for class {class_names[i]}: {accuracy:.4f}')
 
 def save_checkpoint(save_path, epoch, model, loss, lr_scheduler, optimizer):
     save_state = {'model': model.state_dict(),
@@ -178,6 +193,8 @@ def test_model(model, data_loader, device, video_format=True, multiclass=False):
         AUC_values, _, _, HTER_values = performances_cross_db(raw_test_scores, gt_labels)
     
     accuracy = accuracy_score(all_labels, all_predictions)
+    class_names = ["3D_mask", "bonafide", "print", "paper_cut", "replay"]  # Replace with your actual class names
+    print_per_class_accuracy(np.array(gt_labels), np.array(predictions), class_names)
     return AUC_values, HTER_values, accuracy
 
 
