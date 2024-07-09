@@ -120,8 +120,8 @@ def run_training(train_csv, test_csv, log_file, output_path, args, device):
 
             torch.save( model.state_dict(), os.path.join(checkpoint_save_dir, '{}.pth'.format(epoch)))
 
-            tqdm.write('Epoch: %d, Train: loss_total= %.4f,  loss_1_total= %.4f, loss_2_total= %.4f, lr_1=%.6f, lr_2=%.6f, accuracy_total=%.6f \n' % (epoch, loss_total.avg, loss_1_total.avg, loss_2_total.avg, optimizer.param_groups[0]['lr'], optimizer.param_groups[1]['lr'], accuracy_total))# , curr_lr[0]
-            log_file.write('Epoch: %d, Train: loss_total= %.4f, loss_1_total= %.4f, loss_2_total= %.4f,  lr_2=%.6f, lr_2=%.6f, accuracy_total=%.6f \n' % (epoch, loss_total.avg, loss_1_total.avg, loss_2_total.avg, optimizer.param_groups[0]['lr'], optimizer.param_groups[1]['lr'], accuracy_total)) #,  curr_lr[0]
+            tqdm.write('Epoch: %d, Train: loss_total= %.4f,  loss_1_total= %.4f, loss_2_total= %.4f, lr_1=%.6f, lr_2=%.6f, accuracy_total=%.6f \n' % (epoch, loss_total.avg, loss_1_total.avg, loss_2_total.avg, optimizer.param_groups[0]['lr'], optimizer.param_groups[1]['lr'], accuracy_total.avg))# , curr_lr[0]
+            log_file.write('Epoch: %d, Train: loss_total= %.4f, loss_1_total= %.4f, loss_2_total= %.4f,  lr_2=%.6f, lr_2=%.6f, accuracy_total=%.6f \n' % (epoch, loss_total.avg, loss_1_total.avg, loss_2_total.avg, optimizer.param_groups[0]['lr'], optimizer.param_groups[1]['lr'], accuracy_total.avg)) #,  curr_lr[0]
             log_file.flush()
 
         print ('------------ test 1 -------------------')
