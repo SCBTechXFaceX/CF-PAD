@@ -173,9 +173,10 @@ def test_model(model, data_loader, device, video_format=True, multiclass=False):
             raw_scores = output.softmax(dim=1)[:, 1].cpu().data.numpy()
             raw_test_scores.extend(raw_scores)
             #raw_scores = 1 - raw_scores
-            predictions = np.argmax(output.cpu().data.numpy(), axis=1)
-            all_predictions.extend(predictions)
-            all_labels.extend(labels)
+            if (multiclass):
+                predictions = np.argmax(output.cpu().data.numpy(), axis=1)
+                all_predictions.extend(predictions)
+                all_labels.extend(labels)
             
             labels_np = labels.data.numpy()
             gt_labels.extend(np.where(labels_np == 1, 1, 0))
@@ -191,9 +192,9 @@ def test_model(model, data_loader, device, video_format=True, multiclass=False):
         raw_test_scores = ( raw_test_scores - raw_test_stats[0]) / raw_test_stats[1]
 
         AUC_values, _, _, HTER_values = performances_cross_db(raw_test_scores, gt_labels)
-    
-    accuracy = accuracy_score(all_labels, all_predictions)
+    accuracy = -1
     if (multiclass):
+        accuracy = accuracy_score(all_labels, all_predictions)
         class_names = ["3D_mask", "bonafide", "print", "paper_cut", "replay"]  # Replace with your actual class names
         print_per_class_accuracy(np.array(all_labels), np.array(all_predictions), class_names)
     return AUC_values, HTER_values, accuracy
