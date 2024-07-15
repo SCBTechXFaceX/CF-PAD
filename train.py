@@ -230,7 +230,7 @@ if __name__ == "__main__":
     parser.add_argument("--training_csv", type=str, help="csv contains training data")
     parser.add_argument("--test_csv", type=str, help="csv contains test data")
 
-    parser.add_argument('--lr', type=list, help='Learning rate', default=[0.001, 0.01])
+    parser.add_argument('--lr', type=list, help='Learning rate', default=[0.001, 0.001])
     parser.add_argument("--input_shape_width", default=256, type=int, help="Neural Network input shape")
     parser.add_argument("--input_shape_height", default=256, type=int, help="Neural Network input shape")
     parser.add_argument("--max_epoch", default=50, type=int, help="maximum epochs")
