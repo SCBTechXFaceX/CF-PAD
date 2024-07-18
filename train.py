@@ -32,6 +32,18 @@ import cv2
 
 torch.autograd.set_detect_anomaly(True)
 
+def save_intermediate_results(predictions, labels, chunk_idx):
+    np.save(f'predictions_chunk_{chunk_idx}.npy', predictions)
+    np.save(f'labels_chunk_{chunk_idx}.npy', labels)
+
+def load_intermediate_results(num_chunks):
+    all_predictions = []
+    all_labels = []
+    for i in range(num_chunks):
+        all_predictions.extend(np.load(f'predictions_chunk_{i}.npy'))
+        all_labels.extend(np.load(f'labels_chunk_{i}.npy'))
+    return np.array(all_predictions), np.array(all_labels)
+
 def compute_per_class_accuracy(labels, preds, num_classes):
     mcm = multilabel_confusion_matrix(labels, preds, labels=range(num_classes))
     accuracies = []
@@ -159,26 +171,23 @@ def test_model(model, data_loader, device, video_format=True, multiclass=False):
     model.eval()
 
     raw_test_scores, gt_labels = [], []
-    raw_scores_dict = []
     raw_test_video_ids = []
-    all_predictions = []
-    all_labels = []
+    chunk_idx = 0
 
     with torch.no_grad():
-        # for train
         for i, data in enumerate(tqdm(data_loader)):
             raw, labels, img_pathes = data["images"].to(device), data["labels"], data["img_path"]
             output = model(raw, cf=None)
 
             raw_scores = output.softmax(dim=1)[:, 1].cpu().data.numpy()
             raw_test_scores.extend(raw_scores)
-            #raw_scores = 1 - raw_scores
-            if (multiclass):
+
+            if multiclass:
                 predictions = np.argmax(output.cpu().data.numpy(), axis=1)
-                all_predictions.extend(predictions)
-                all_labels.extend(labels)
+                save_intermediate_results(predictions, labels.cpu().numpy(), chunk_idx)
+                chunk_idx += 1
             
-            labels_np = labels.data.numpy()
+            labels_np = labels.cpu().numpy()
             gt_labels.extend(np.where(labels_np == 1, 1, 0))
 
             for j in range(raw.shape[0]):
@@ -188,15 +197,19 @@ def test_model(model, data_loader, device, video_format=True, multiclass=False):
 
         if video_format:
             raw_test_scores, gt_labels, _ = compute_video_score(raw_test_video_ids, raw_test_scores, gt_labels)
+        
         raw_test_stats = [np.mean(raw_test_scores), np.std(raw_test_scores)]
-        raw_test_scores = ( raw_test_scores - raw_test_stats[0]) / raw_test_stats[1]
+        raw_test_scores = (raw_test_scores - raw_test_stats[0]) / raw_test_stats[1]
 
         AUC_values, _, _, HTER_values = performances_cross_db(raw_test_scores, gt_labels)
+    
     accuracy = -1
-    if (multiclass):
+    if multiclass:
+        all_predictions, all_labels = load_intermediate_results(chunk_idx)
         accuracy = accuracy_score(all_labels, all_predictions)
         class_names = ["3D_mask", "bonafide", "print", "paper_cut", "replay"]  # Replace with your actual class names
-        print_per_class_accuracy(np.array(all_labels), np.array(all_predictions), class_names)
+        print_per_class_accuracy(all_labels, all_predictions, class_names)
+
     return AUC_values, HTER_values, accuracy
 
 
@@ -230,7 +243,7 @@ if __name__ == "__main__":
     parser.add_argument("--training_csv", type=str, help="csv contains training data")
     parser.add_argument("--test_csv", type=str, help="csv contains test data")
 
-    parser.add_argument('--lr', type=list, help='Learning rate', default=[0.001, 0.001])
+    parser.add_argument('--lr', type=list, help='Learning rate', default=[0.001, 0.01])
     parser.add_argument("--input_shape_width", default=256, type=int, help="Neural Network input shape")
     parser.add_argument("--input_shape_height", default=256, type=int, help="Neural Network input shape")
     parser.add_argument("--max_epoch", default=50, type=int, help="maximum epochs")
