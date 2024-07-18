@@ -65,7 +65,7 @@ def performances_cross_db(prediction_scores, gt_labels, pos_label=1, verbose=Tru
     HTER = (fpr+FRR)/2.0    # error recognition rate &  reject recognition rate
 
     if verbose is True:
-        print(f'AUC@ROC is {test_auc}, HTER is {HTER[right_index]}, APCER: {fpr[right_index]}, BPCER: {FRR[right_index]}, EER is {val_eer}, TH is {val_threshold}')
+        print(f'AUC@ROC is {test_auc}, HTER is {HTER[right_index]}, APCER: {FRR[right_index]}, BPCER: {fpr[right_index]}, EER is {val_eer}, TH is {val_threshold}')
 
     return test_auc, fpr[right_index], FRR[right_index], HTER[right_index]
 
@@ -81,7 +81,7 @@ def performances_cross_db_th(prediction_scores, gt_labels, pos_label=1, verbose=
     HTER = (fpr+FRR)/2.0    # error recognition rate &  reject recognition rate
 
     if verbose is True:
-        print(f'AUC@ROC is {test_auc}, HTER is {HTER[right_index]}, APCER: {fpr[right_index]}, BPCER: {FRR[right_index]}, EER is {val_eer}, TH is {val_threshold}')
+        print(f'AUC@ROC is {test_auc}, HTER is {HTER[right_index]}, APCER: {FRR[right_index]}, BPCER: {fpr[right_index]}, EER is {val_eer}, TH is {val_threshold}')
 
     return test_auc, fpr[right_index], FRR[right_index], HTER[right_index], val_threshold
 
