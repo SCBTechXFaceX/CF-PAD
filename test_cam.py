@@ -18,7 +18,7 @@ PRE__MEAN = [0.485, 0.456, 0.406]
 PRE__STD = [0.229, 0.224, 0.225]
 INPUT__FACE__SIZE = 256
 THRESHOLD = .5
-PADDING = 10
+PADDING = 0
 
 def preprocess_frame_pipe():
     return albumentations.Compose([

@@ -118,6 +118,7 @@ if __name__ == "__main__":
     parser.add_argument("--prefix", default='CF', type=str, help="description")
     parser.add_argument("--model_name", default='resnet18', type=str, help="model backbone")
     parser.add_argument("--num_classes", default=2, type=int, help="model backbone")
+    parser.add_argument("--multiclass", default=False, type=bool, help="select binaryclass/multiclass model")
 
     ########## argument should be noted
     parser.add_argument("--model_path", default='checkpoints/best_model.pth', type=str, help="path to saved weights")

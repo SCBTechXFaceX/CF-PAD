@@ -24,9 +24,9 @@ def run_test(test_csv, args, device):
     test_dataset = TestDataset(csv_file=test_csv, input_shape=args.input_shape)
     test_loader = DataLoader(test_dataset, batch_size=args.batch_size, shuffle=False, num_workers=8, pin_memory=True)
 
-    model = torch.nn.DataParallel(MixStyleResCausalModel(model_name=args.model_name,  pretrained=False, num_classes=2, ms_layers=[]))
+    model = torch.nn.DataParallel(MixStyleResCausalModel(model_name=args.model_name, pretrained=False, num_classes=args.num_classes, ms_layers=[]))
     model = model.to(device)
-    model.load_state_dict(torch.load(args.model_path))
+    model.load_state_dict(torch.load(args.model_path,  map_location=device))
     save_score = False
 
     AUC_value, HTER_value = test_model(model, test_loader, device, video_format=args.video_format)
@@ -97,6 +97,8 @@ if __name__ == "__main__":
     parser.add_argument("--model_path", default='checkpoints/ocim.pth', type=str, help="path to saved weights")
     parser.add_argument("--test_csv", type=str, help="csv contains test data")
     parser.add_argument("--video_format", type=bool, help="video format or not")
+    parser.add_argument("--num_classes", default=2, type=int, help="number of classes (bona fide and attack)")
+    parser.add_argument("--multiclass", default=False, type=bool, help="select binaryclass/multiclass model")
 
     args = parser.parse_args()
 
