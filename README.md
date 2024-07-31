@@ -7,6 +7,12 @@ This is the a repository that fork and edit from the paper: Face Presentation At
 ## Pipeline Overview
 ![overview](images/workflow.png)
 
+## Installation
+```bash
+conda env create -f environment.yml
+conda activate cfpad
+```
+
 ## Data format
 The format of the `binary classification` dataset CSV file is:
 ```
